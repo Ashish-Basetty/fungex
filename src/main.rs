@@ -51,7 +51,7 @@ struct Nfa {
     transitions: HashMap<State, Vec<(char, State)>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 enum RegexExpr {
     SingleChar(char), // char should be a lowercase or uppercase letter (a-z or A-Z)
     Star(Box<RegexExpr>),
@@ -78,4 +78,68 @@ fn convert_regex_to_nfa(expression: &RegexExpr) -> Nfa {
 /// returns true if the NFA accepts the input string, and false otherwise.
 fn run_nfa(nfa: &Nfa, input_string: &str) -> bool {
     todo!()
+}
+
+#[test]
+fn test_parse_regex1() {
+    let expected_expr = RegexExpr::SingleChar('a');
+    assert_eq!(parse_regex("a"), expected_expr);
+}
+
+#[test]
+fn test_parse_regex2() {
+    let expected_expr = RegexExpr::Concat(
+        Box::new(RegexExpr::SingleChar('a')),
+        Box::new(RegexExpr::SingleChar('b')),
+    );
+    assert_eq!(parse_regex("ab"), expected_expr);
+}
+
+#[test]
+fn test_parse_regex3() {
+    let expected_expr = RegexExpr::Or(
+        Box::new(RegexExpr::SingleChar('a')),
+        Box::new(RegexExpr::SingleChar('b')),
+    );
+    assert_eq!(parse_regex("a|b"), expected_expr);
+    assert_eq!(parse_regex("(a)|b"), expected_expr);
+    assert_eq!(parse_regex("((a)|(((b))))"), expected_expr);
+}
+
+#[test]
+fn test_parse_regex4() {
+    let expected_expr = RegexExpr::Star(Box::new(RegexExpr::SingleChar('a')));
+    assert_eq!(parse_regex("a*"), expected_expr);
+}
+
+#[test]
+fn test_parse_regex5() {
+    let e1 = RegexExpr::Star(Box::new(RegexExpr::SingleChar('a')));
+    let expected_expr = RegexExpr::Or(Box::new(e1), Box::new(RegexExpr::SingleChar('b')));
+
+    assert_eq!(parse_regex("a*|b"), expected_expr);
+    assert_eq!(parse_regex("(a*)|b"), expected_expr);
+    assert_eq!(parse_regex("a*|(b)"), expected_expr);
+}
+
+#[test]
+fn test_parse_regex6() {
+    let e1 = RegexExpr::Star(Box::new(RegexExpr::SingleChar('b')));
+    let expected_expr = RegexExpr::Or(Box::new(RegexExpr::SingleChar('a')), Box::new(e1));
+
+    assert_eq!(parse_regex("a|b*"), expected_expr);
+    assert_eq!(parse_regex("a|(b*)"), expected_expr);
+}
+
+#[test]
+fn test_parse_regex7() {
+    let e1 = RegexExpr::Concat(
+        Box::new(RegexExpr::SingleChar('a')),
+        Box::new(RegexExpr::SingleChar('b')),
+    );
+    let expected_expr = RegexExpr::Or(Box::new(e1), Box::new(RegexExpr::SingleChar('c')));
+
+    assert_eq!(parse_regex("ab|c"), expected_expr);
+    assert_eq!(parse_regex("ab|(c)"), expected_expr);
+    assert_eq!(parse_regex("(ab)|c"), expected_expr);
 }
