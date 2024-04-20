@@ -44,3 +44,27 @@ fn test_generate_simple_or_nfa() {
     println!("Here is a nfa which accepts the string 'a' or 'b':");
     println!("{:?}", m);
 }
+
+#[test]
+fn test_generate_nfa() {
+    let e1 = RegexExpr::Concat(
+        Box::new(RegexExpr::SingleChar('a')),
+        Box::new(RegexExpr::SingleChar('b')),
+    );
+    let expr = RegexExpr::Or(Box::new(RegexExpr::SingleChar('c')), Box::new(e1));
+    let m = convert_regex_to_nfa(&expr);
+    println!("Here is a nfa which accepts the string 'c' or 'ab':");
+    println!("{:?}", m);
+}
+
+#[test]
+fn test_generate_nfa2() {
+    let e1 = RegexExpr::Or(
+        Box::new(RegexExpr::SingleChar('a')),
+        Box::new(RegexExpr::SingleChar('b')),
+    );
+    let expr = RegexExpr::Concat(Box::new(RegexExpr::SingleChar('c')), Box::new(e1));
+    let m = convert_regex_to_nfa(&expr);
+    println!("Here is a nfa which accepts the string 'ca' or 'cb':");
+    println!("{:?}", m);
+}

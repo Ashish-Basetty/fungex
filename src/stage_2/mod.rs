@@ -95,7 +95,15 @@ pub fn convert_regex_to_nfa(expression: &RegexExpr) -> Nfa {
                 );
             }
             for (s, out_transitions) in m2.transitions {
-                resulting_nfa.transitions.insert(s, out_transitions);
+                if !resulting_nfa.transitions.contains_key(&s) {
+                    resulting_nfa.transitions.insert(s, out_transitions);
+                } else {
+                    resulting_nfa
+                        .transitions
+                        .get_mut(&s)
+                        .unwrap()
+                        .extend(out_transitions);
+                }
             }
 
             return resulting_nfa;
