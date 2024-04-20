@@ -13,7 +13,29 @@ pub fn convert_regex_to_nfa(expression: &RegexExpr) -> Nfa {
                 transitions,
             }
         }
-        RegexExpr::Star(_) => todo!(),
+        RegexExpr::Star(e) => {
+            let mut m = convert_regex_to_nfa(e);
+            let num_states = rename_states(&mut m);
+
+            let old_acc_state = m.accepting_state;
+            let old_init_state = m.initial_state;
+            let new_init_state = num_states;
+            let new_acc_state = num_states + 1;
+
+            m.initial_state = new_init_state;
+            m.accepting_state = new_acc_state;
+            m.transitions.insert(
+                old_acc_state,
+                vec![('\0', old_init_state), ('\0', new_acc_state)],
+            );
+            m.transitions.insert(
+                new_init_state,
+                vec![('\0', old_init_state), ('\0', new_acc_state)],
+            );
+
+            rename_states(&mut m);
+            return m;
+        }
         RegexExpr::Concat(e1, e2) => {
             let mut m1 = convert_regex_to_nfa(e1);
             let mut m2 = convert_regex_to_nfa(e2);
@@ -52,6 +74,7 @@ pub fn convert_regex_to_nfa(expression: &RegexExpr) -> Nfa {
                 resulting_nfa.transitions.insert(s, out_transitions);
             }
 
+            rename_states(&mut resulting_nfa);
             return resulting_nfa;
         }
         RegexExpr::Or(e1, e2) => {
@@ -106,6 +129,7 @@ pub fn convert_regex_to_nfa(expression: &RegexExpr) -> Nfa {
                 }
             }
 
+            rename_states(&mut resulting_nfa);
             return resulting_nfa;
         }
     }
@@ -137,6 +161,24 @@ fn rename_nfa_states(m1: &mut Nfa, m2: &mut Nfa) {
 
     *m1 = rename_nfa_with_map(m1, &m1_rename_map);
     *m2 = rename_nfa_with_map(m2, &m2_rename_map);
+}
+
+/// If m has n unique states, then this function renames the states 0, 1, ..., (n-1)
+/// and also returns n
+fn rename_states(m: &mut Nfa) -> usize {
+    let mut next_state: State = 0;
+    let mut rename_map: HashMap<State, State> = HashMap::new();
+    for s in get_all_state_references(m) {
+        if !rename_map.contains_key(&s) {
+            rename_map.insert(s, next_state);
+            next_state += 1;
+        }
+    }
+
+    *m = rename_nfa_with_map(m, &rename_map);
+
+    let num_total_states = rename_map.len();
+    return num_total_states;
 }
 
 fn get_all_state_references(m: &Nfa) -> Vec<State> {

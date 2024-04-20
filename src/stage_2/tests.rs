@@ -68,3 +68,20 @@ fn test_generate_nfa2() {
     println!("Here is a nfa which accepts the string 'ca' or 'cb':");
     println!("{:?}", m);
 }
+
+#[test]
+fn test_generate_nfa3() {
+    let expr = RegexExpr::Star(Box::new(RegexExpr::SingleChar('a')));
+    let m = convert_regex_to_nfa(&expr);
+    println!("Here is a nfa which accepts the string 'a*': ");
+    println!("{:?}", m);
+}
+
+#[test]
+fn test_generate_nfa4() {
+    let e1 = RegexExpr::Star(Box::new(RegexExpr::SingleChar('a')));
+    let expr = RegexExpr::Or(Box::new(e1), Box::new(RegexExpr::SingleChar('b')));
+    let m = convert_regex_to_nfa(&expr);
+    println!("Here is a nfa which accepts the string '(a*) | b': ");
+    println!("{:?}", m);
+}
