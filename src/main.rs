@@ -1,11 +1,16 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
+mod stage_2;
+
 use std::collections::HashMap;
 
+use crate::stage_2::convert_regex_to_nfa;
+
 fn main() {
-    println!("Hello, world!");
-    println!("Here's the epsilon: {:?}", '\0');
+    let expr = RegexExpr::SingleChar('a');
+
+    println!("{:?}", convert_regex_to_nfa(&expr));
 }
 
 type State = usize;
@@ -36,10 +41,6 @@ enum RegexExpr {
 /// the input "a|b*" should be read as "a|(b*)",  with kleene star   having higher precedence than OR.
 /// the input "ab*" should be read as "a(b*)",    with kleene star   having higher precedence than concatenation.
 fn parse_regex(input_string: &str) -> RegexExpr {
-    todo!()
-}
-
-fn convert_regex_to_nfa(expression: &RegexExpr) -> Nfa {
     todo!()
 }
 
