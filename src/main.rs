@@ -16,31 +16,6 @@ type State = usize;
 // If close paren: pop everything until the last paren
 // If operator: push onto the stack
 
-fn reg_to_tree(rx: &String){
-    let mut stack: Vec<char> = Vec::new();
-    let mut rps: String = String::new();
-
-    for c in rx.chars(){
-        if c.is_alphabetic() || c == '*'{
-            rps.push(c);
-        }
-        else if c == '('{
-            stack.push(c);
-        }
-        else if c == ')'{
-            let curr = stack.pop();
-            while (curr != None && curr != Some(')')){
-                rps.push(curr.unwrap());
-            }
-        }
-        else{
-            
-        }
-
-    }
-
-}
-
 #[derive(Debug)]
 struct Nfa {
     initial_state: State,
@@ -67,7 +42,95 @@ enum RegexExpr {
 /// the input "a|b*" should be read as "a|(b*)",  with kleene star   having higher precedence than OR.
 /// the input "ab*" should be read as "a(b*)",    with kleene star   having higher precedence than concatenation.
 fn parse_regex(input_string: &str) -> RegexExpr {
-    todo!()
+    let mut stack: Vec<char> = Vec::new();
+    let mut rps: String = String::new();
+
+    let chars: Vec<char> = input_string.chars().collect();
+
+    println!("Original String: {}", input_string);
+
+    for index in 0..chars.len(){
+        let c = chars[index];
+
+        if c.is_alphanumeric() || c == '*'{
+            rps.push(c);
+            if index+1 < chars.len() && (chars[index+1].is_alphanumeric() || chars[index+1] == '('){
+                stack.push('^');
+            }
+        }
+        else if c == '('{
+            stack.push('(');
+        }
+        else if c == ')'{
+            let curr = stack.pop();
+            while curr != None && curr != Some('('){
+                rps.push(curr.unwrap());
+            }
+            if index+1 < chars.len() && (chars[index+1].is_alphanumeric() || chars[index+1] == '('){
+                stack.push('^');
+            }
+        }
+        else if c == '|'{
+            let curr = stack.pop();
+            while curr != None && curr == Some('^'){
+                rps.push(curr.unwrap());
+            }
+            if curr != None{
+                stack.push(curr.unwrap());
+            }
+            stack.push('|');
+        }
+        else {
+            panic!("Regex character not recognized");
+        }
+    }
+    while stack.len() > 0{
+        rps.push(stack.pop().unwrap());
+    }
+
+    println!("Reverse Polish String: {}\n", rps);
+
+    //Start from the end and move left, recursively right tree first
+
+    let c_vec: Vec<char> = rps.chars().collect();
+
+    if c_vec.len() <= 0{
+        panic!("Empty Input String");
+    }
+
+    tree_from_str(&c_vec, c_vec.len()-1).0
+
+}
+
+fn tree_from_str(polish_str: &Vec<char>, start: usize) -> (RegexExpr, usize){
+    let s_size: usize = polish_str.len();
+
+    if start < 0{
+        panic!("Invalid Regex String");
+    }
+
+    let size: usize = 0;
+    let curr = polish_str[start];
+
+
+    if curr.is_alphanumeric(){
+        return (RegexExpr::SingleChar(curr), 1)
+    }
+    if curr == '*'{
+        let (child, ct) = tree_from_str(polish_str, start-1);
+        return(RegexExpr::Star(Box::new(child)), 1 + ct);
+    }
+    else if curr == '^'{
+        let (childr, ctr) = tree_from_str(polish_str, start-1);
+        let (childl, ctl) = tree_from_str(polish_str, start-ctr-1);
+        return(RegexExpr::Concat(Box::new(childl), Box::new(childr)), 1 + ctl + ctr);
+    }
+    else{
+        let (childr, ctr) = tree_from_str(polish_str, start-1);
+        let (childl, ctl) = tree_from_str(polish_str, start-ctr-1);
+        return(RegexExpr::Or(Box::new(childl), Box::new(childr)), 1 + ctl + ctr);
+    }
+
 }
 
 fn convert_regex_to_nfa(expression: &RegexExpr) -> Nfa {
