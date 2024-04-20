@@ -2,6 +2,7 @@
 #![allow(unused_variables)]
 
 mod stage_2;
+mod stage_3;
 
 use std::collections::HashMap;
 
@@ -41,11 +42,5 @@ enum RegexExpr {
 /// the input "a|b*" should be read as "a|(b*)",  with kleene star   having higher precedence than OR.
 /// the input "ab*" should be read as "a(b*)",    with kleene star   having higher precedence than concatenation.
 fn parse_regex(input_string: &str) -> RegexExpr {
-    todo!()
-}
-
-/// Runs a NFA on an input string.
-/// returns true if the NFA accepts the input string, and false otherwise.
-fn run_nfa(nfa: &Nfa, input_string: &str) -> bool {
     todo!()
 }
