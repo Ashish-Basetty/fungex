@@ -10,6 +10,37 @@ fn main() {
 
 type State = usize;
 
+// First, go through our string, and for any adjacent chars (or parentheses), and insert a carat if necessary
+// If alphabet: add it to the end of a list 
+// If open paren: push to stack
+// If close paren: pop everything until the last paren
+// If operator: push onto the stack
+
+fn reg_to_tree(rx: &String){
+    let mut stack: Vec<char> = Vec::new();
+    let mut rps: String = String::new();
+
+    for c in rx.chars(){
+        if c.is_alphabetic() || c == '*'{
+            rps.push(c);
+        }
+        else if c == '('{
+            stack.push(c);
+        }
+        else if c == ')'{
+            let curr = stack.pop();
+            while (curr != None && curr != Some(')')){
+                rps.push(curr.unwrap());
+            }
+        }
+        else{
+            
+        }
+
+    }
+
+}
+
 #[derive(Debug)]
 struct Nfa {
     initial_state: State,
