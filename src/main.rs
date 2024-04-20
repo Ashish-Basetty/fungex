@@ -1,22 +1,33 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
+mod nfa_to_file;
 mod stage_2;
 mod stage_3;
 
 use std::collections::HashMap;
 
+use nfa_to_file::write_nfa_to_pdf;
+
 use crate::stage_2::convert_regex_to_nfa;
 
 fn main() {
-    let expr = RegexExpr::SingleChar('a');
+    let expr = RegexExpr::Or(
+        Box::new(RegexExpr::SingleChar('a')),
+        Box::new(RegexExpr::SingleChar('b')),
+    );
+    let expr = RegexExpr::Concat(
+        Box::new(RegexExpr::Star(Box::new(expr))),
+        Box::new(RegexExpr::SingleChar('c')),
+    );
 
-    println!("{:?}", convert_regex_to_nfa(&expr));
+    let m = convert_regex_to_nfa(&expr);
+    write_nfa_to_pdf(&m);
 }
 
 type State = usize;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Nfa {
     initial_state: State,
     accepting_state: State,

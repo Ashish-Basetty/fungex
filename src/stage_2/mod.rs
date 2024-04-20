@@ -165,7 +165,7 @@ fn rename_nfa_states(m1: &mut Nfa, m2: &mut Nfa) {
 
 /// If m has n unique states, then this function renames the states 0, 1, ..., (n-1)
 /// and also returns n
-fn rename_states(m: &mut Nfa) -> usize {
+pub fn rename_states(m: &mut Nfa) -> usize {
     let mut next_state: State = 0;
     let mut rename_map: HashMap<State, State> = HashMap::new();
     for s in get_all_state_references(m) {
@@ -187,7 +187,9 @@ fn get_all_state_references(m: &Nfa) -> Vec<State> {
     for (q, out_transitions) in m.transitions.iter() {
         states.push(*q);
         for (transition_char, next_state) in out_transitions {
-            states.push(*next_state);
+            if *next_state != m.accepting_state {
+                states.push(*next_state);
+            }
         }
     }
     states.push(m.accepting_state);
