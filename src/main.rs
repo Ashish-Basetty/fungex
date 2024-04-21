@@ -34,6 +34,14 @@ enum RegexExpr {
     Or(Box<RegexExpr>, Box<RegexExpr>),
 }
 
+fn print_vec(v: &Vec<char>){
+    print!("[");
+    for item in v{
+        print!("{}, ", item);
+    }
+    println!("]");
+}
+
 /// Parses an input string representing a regex expression.
 /// The input string will consist of uppercase and lowercase English letters
 /// as well as characters '(' ')' for grouping expressions '*' for Kleene star and '|' for OR.
@@ -47,9 +55,11 @@ fn parse_regex(input_string: &str) -> RegexExpr {
 
     let chars: Vec<char> = input_string.chars().collect();
 
-    println!("Original String: {}", input_string);
+    //println!("Original String: {}", input_string);
 
     for index in 0..chars.len(){
+        print_vec(&stack);
+
         let c = chars[index];
 
         if c.is_alphanumeric() || c == '*'{
@@ -62,18 +72,20 @@ fn parse_regex(input_string: &str) -> RegexExpr {
             stack.push('(');
         }
         else if c == ')'{
-            let curr = stack.pop();
+            let mut curr = stack.pop();
             while curr != None && curr != Some('('){
                 rps.push(curr.unwrap());
+                curr = stack.pop();
             }
             if index+1 < chars.len() && (chars[index+1].is_alphanumeric() || chars[index+1] == '('){
                 stack.push('^');
             }
         }
         else if c == '|'{
-            let curr = stack.pop();
+            let mut curr = stack.pop();
             while curr != None && curr == Some('^'){
                 rps.push(curr.unwrap());
+                curr = stack.pop();
             }
             if curr != None{
                 stack.push(curr.unwrap());
@@ -84,11 +96,15 @@ fn parse_regex(input_string: &str) -> RegexExpr {
             panic!("Regex character not recognized");
         }
     }
+
     while stack.len() > 0{
-        rps.push(stack.pop().unwrap());
+        let curr = stack.pop();
+        if (curr != None && curr != Some(')')){
+            rps.push(curr.unwrap());
+        }
     }
 
-    println!("Reverse Polish String: {}\n", rps);
+    //println!("Reverse Polish String: {}\n", rps);
 
     //Start from the end and move left, recursively right tree first
 
