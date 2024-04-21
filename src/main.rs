@@ -1,12 +1,29 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
+mod nfa_to_file;
 mod stage_1;
+mod stage_2;
+mod stage_3;
+
 use std::collections::HashMap;
 
+use nfa_to_file::write_nfa_to_pdf;
+
+use crate::stage_2::convert_regex_to_nfa;
+
 fn main() {
-    println!("Hello, world!");
-    println!("Here's the epsilon: {:?}", '\0');
+    let expr = RegexExpr::Or(
+        Box::new(RegexExpr::SingleChar('a')),
+        Box::new(RegexExpr::SingleChar('b')),
+    );
+    let expr = RegexExpr::Concat(
+        Box::new(RegexExpr::Star(Box::new(expr))),
+        Box::new(RegexExpr::SingleChar('c')),
+    );
+
+    let m = convert_regex_to_nfa(&expr);
+    write_nfa_to_pdf(&m);
 }
 
 type State = usize;
@@ -16,8 +33,7 @@ type State = usize;
 // If open paren: push to stack
 // If close paren: pop everything until the last paren
 // If operator: push onto the stack
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Nfa {
     initial_state: State,
     accepting_state: State,
@@ -149,14 +165,4 @@ fn tree_from_str(polish_str: &Vec<char>, start: usize) -> (RegexExpr, usize) {
             1 + ctl + ctr,
         );
     }
-}
-
-fn convert_regex_to_nfa(expression: &RegexExpr) -> Nfa {
-    todo!()
-}
-
-/// Runs a NFA on an input string.
-/// returns true if the NFA accepts the input string, and false otherwise.
-fn run_nfa(nfa: &Nfa, input_string: &str) -> bool {
-    todo!()
 }
