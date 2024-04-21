@@ -6,24 +6,38 @@ mod stage_1;
 mod stage_2;
 mod stage_3;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, process::exit};
 
 use nfa_to_file::write_nfa_to_pdf;
 
-use crate::stage_2::convert_regex_to_nfa;
+use crate::{stage_2::convert_regex_to_nfa, stage_3::run_nfa};
 
 fn main() {
-    let expr = RegexExpr::Or(
-        Box::new(RegexExpr::SingleChar('a')),
-        Box::new(RegexExpr::SingleChar('b')),
-    );
-    let expr = RegexExpr::Concat(
-        Box::new(RegexExpr::Star(Box::new(expr))),
-        Box::new(RegexExpr::SingleChar('c')),
-    );
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() <= 1 {
+        println!("please give an argument which is a regex expression.");
+        exit(0);
+    }
+
+    let arg_1 = args.get(1).unwrap();
+
+    let expr = parse_regex(&arg_1);
 
     let m = convert_regex_to_nfa(&expr);
     write_nfa_to_pdf(&m);
+
+    loop {
+        let mut buffer = String::new();
+        std::io::stdin().read_line(&mut buffer).unwrap();
+        if buffer.is_empty() {
+            exit(0);
+        }
+        buffer = buffer.strip_suffix('\n').unwrap().to_string();
+
+        if run_nfa(&m, &buffer) {
+            println!("{}", buffer);
+        }
+    }
 }
 
 type State = usize;
@@ -75,7 +89,7 @@ fn parse_regex(input_string: &str) -> RegexExpr {
     //println!("Original String: {}", input_string);
 
     for index in 0..chars.len() {
-        print_vec(&stack);
+        // print_vec(&stack);
 
         let c = chars[index];
 
